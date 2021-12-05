@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
-from habilidades import Habilidades
+from habilidades import Habilidades, ListaHabilidades
 import json
 
 app = Flask(__name__)
@@ -51,12 +51,26 @@ class ListaDesenvolvedores(Resource):
         dados = json.loads(request.data)
         posicao = len(desenvolvedores)
         dados['id'] = posicao
+        lista_habilidades_cadastradas = ListaHabilidades.get(self)
+        lista_habilidades_dados = dados['habilidades']
+
+        lista_habilidades_cadastradas_k = []
+
+        for x in lista_habilidades_cadastradas:
+            lista_habilidades_cadastradas_k.append(x['habilidade']);
+
+        art = list(set(lista_habilidades_dados) - set(lista_habilidades_cadastradas_k))
+
+        if art != []:
+            return 'Habilidades {} não existe na lista'.format(art)
+
         desenvolvedores.append(dados)
         return desenvolvedores[posicao]
 
 api.add_resource(Desenvolvedor, '/dev/<int:id>/')
 api.add_resource(ListaDesenvolvedores, '/dev/')
-api.add_resource(Habilidades, '/habilidades/')
+api.add_resource(ListaHabilidades, '/habilidades/')
+api.add_resource(Habilidades, '/habilidades/<int:id>/')
 
 if __name__ == '__main__':
     app.run(debug=True)
